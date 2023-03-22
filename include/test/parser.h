@@ -23,8 +23,6 @@ struct Parser {
 
             memcpy(const_cast<char*>(info.account.c_str()), cur + 1, 10);
 
-            // info.account = buffer;
-
             memcpy(&pwd_len, cur + 1 + 10 + 15, 2);
         }
 

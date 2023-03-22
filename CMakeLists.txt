@@ -20,14 +20,15 @@ project(Client)
 
 add_definitions(-DUNICODE -D_UNICODE -D_USE_MATH_DEFINES -DNOMINMAX)
 
-file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS src/*.cpp)
+file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS src/*.cpp include/*.cpp)
 file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS include/*.h)
 
 add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC wsock32 ws2_32)
+target_link_libraries(${PROJECT_NAME} PUBLIC wsock32 ws2_32 dxguid d3d12 dxgi)
+target_compile_definitions(${PROJECT_NAME} PUBLIC ROOT_DIR=${ROOT_DIR})
 
 if(WIN32)
     target_compile_definitions(${PROJECT_NAME} PUBLIC WINDOWS)
