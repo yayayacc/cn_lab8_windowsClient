@@ -8,23 +8,14 @@ void Client::creatSocket(SOCKADDR_IN& hostAddr, char const* hostIP, char const* 
     }
 
     memset(&hostAddr, 0, sizeof(hostAddr));
-    hostAddr.sin_family      = AF_INET;
+    hostAddr.sin_family = AF_INET;
     // hostAddr.sin_addr.s_addr = inet_addr(hostIP);
     hostAddr.sin_addr.s_addr = inet_addr(hostIP);
     hostAddr.sin_port        = htons(atoi(hostPort));
-
 }
 
-void run(){
-    
+void Client::run() {
 }
 
-bool logIn(){
-    char account[10];
-    char pwd[10];
-    std::cout<<"请输入账号：";
-    std::cin>>account;\
-    std::cout<<"请输入密码：";
-    std::cin>>pwd;
-    
+bool Client::logIn() {
 }
