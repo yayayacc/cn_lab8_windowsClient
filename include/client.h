@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include"package_factory.h"
+#include"parser.h"
 
 #define MAX_BUFFER 4095
 

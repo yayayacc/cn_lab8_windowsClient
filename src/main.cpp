@@ -4,7 +4,7 @@
 #include "client.h"
 #include "gui.h"
 #include "package_factory.h"
-#include "test/parser.h"
+#include "parser.h"
 
 // int main() {
 //     GUI gui;
