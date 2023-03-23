@@ -1,6 +1,6 @@
 #include"package_factory.h"
 
-PackageFactory::Package PackageFactory:: createLoginPackage(const char* account /* 10 byte */, const std::string& password) {
+Package PackageFactory:: createLoginPackage(const char* account /* 10 byte */, const std::string& password) {
     Package pkg;
     pkg.size  = 40 + password.size(); // 40 Byte is the size of PackageHead
     pkg.start = new Byte[pkg.size];
@@ -30,7 +30,7 @@ PackageFactory::Package PackageFactory:: createLoginPackage(const char* account 
     return pkg;
 }
 
-PackageFactory::Package PackageFactory::createPackage1(const char* account, char flag){
+Package PackageFactory::createPackage1(const char* account, char flag){
     Package pkg;
     pkg.size  = 40 + 1; // 40 Byte is the size of PackageHead
     pkg.start = new Byte[pkg.size];

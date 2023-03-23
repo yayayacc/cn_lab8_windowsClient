@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include"package_factory.h"
+
 #define MAX_BUFFER 4095
 
 class Client {
