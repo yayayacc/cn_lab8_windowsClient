@@ -21,8 +21,9 @@ void Client::run() {
     }
     while(1){
         int op;
-        std::cout<<"what's your option? -1 Msg2User"<<std::endl;
+        std::cout<<"what's your option? "<<std::endl<<"-1 sendMsg2User"<<std::endl<<"-2 receiveMsg";
         std::cin>>op;
+        
         if(op == 1){ // 1代表给目标单发消息
             std::string target;
             std::string msg;
@@ -35,14 +36,27 @@ void Client::run() {
             std::cout<<"here 1"<<std::endl;
             Msg2User(target, msg);
         }
+
+        Sleep(100);
+
+        // if(op == 2){
+        //     readMsgFromUser();
+        // }
+        
     }
 }
 
 int Client::logIn(std::string account, std::string pwd) {
     
-
-    myName = account;
-    myPwd = pwd;
+    std::cout<<"put in your account"<<std::endl;
+    std::cin>>myName;
+    std::cout<<"put in your pwd"<<std::endl;
+    std::cin>>myPwd;
+    
+    
+    
+    // myName = account;
+    // myPwd = pwd;
     
     auto pkg =
             PackageFactory::getInstance().createLoginPackage(myName.c_str(), myPwd);
