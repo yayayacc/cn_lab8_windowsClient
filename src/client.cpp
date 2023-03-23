@@ -21,7 +21,7 @@ void Client::run() {
     }
     while(1){
         int op;
-        std::cout<<"what's your option? "<<std::endl<<"-1 sendMsg2User"<<std::endl<<"-2 receiveMsg";
+        std::cout<<"what's your option? "<<std::endl<<"-1 sendMsg2User"<<std::endl<<"-2 receiveMsg"<<std::endl;
         std::cin>>op;
         
         if(op == 1){ // 1代表给目标单发消息
@@ -39,9 +39,9 @@ void Client::run() {
 
         Sleep(100);
 
-        // if(op == 2){
-        //     readMsgFromUser();
-        // }
+        if(op == 2){
+            readMsgFromUser();
+        }
         
     }
 }
@@ -103,7 +103,21 @@ void Client::Msg2User(std::string target, std::string msg){
     // recv(clientSocket, buffer, MAX_BUFFER, 0);
 }
 
+void Client::readMsgFromUser(){
+    memset(buffer, 0, MAX_BUFFER);
+    recv(clientSocket, buffer, MAX_BUFFER, 0);
+    Parser parser;
 
+    parser.parsePkgHead(buffer);
+    parser.parseMsg(buffer);
+
+    std::cout<<"account"<<parser.info.account<<std::endl;
+    std::cout<<"target"<<parser.info.target<<std::endl;
+    std::cout<<"msglen"<<parser.info.msglen<<std::endl;
+    
+    std::cout<<"msg"<<parser.msg<<std::endl;
+    Sleep(50000);
+}
 
 
 

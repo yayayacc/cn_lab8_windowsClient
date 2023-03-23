@@ -82,7 +82,7 @@ Package PackageFactory::createPackage2(std::string account, std::string target, 
 
         // 4.msg_len
         size_t msglen = msg.size();
-        memcpy(pkg.start + 25, &msg, 2);
+        memcpy(pkg.start + 25, &msglen, 2);
 
         // 5.msg
         memcpy(pkg.start + 40, msg.c_str(), msg.size());

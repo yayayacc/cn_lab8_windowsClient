@@ -25,6 +25,7 @@ public:
 
     // 输入为目标账户名 和 消息内容
     void Msg2User(std::string target, std::string msg);
+    void readMsgFromUser();
 
     SOCKET clientSocket;
     char   buffer[MAX_BUFFER];
