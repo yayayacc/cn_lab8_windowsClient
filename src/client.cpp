@@ -21,7 +21,9 @@ void Client::run() {
     }
     while(1){
         int op;
-        std::cout<<"what's your option? "<<std::endl<<"-1 sendMsg2User"<<std::endl<<"-2 receiveMsg"<<std::endl;
+        std::cout<<"what's your option? "<<std::endl<<"-1 sendMsg2User"<<std::endl<<"-2 receiveMsgFromUser"<<std::endl;
+        std::cout<<"-3 senMst2Group"<<std::endl<<"-4 receiveMsgFromGroup"<<std::endl;
+
         std::cin>>op;
         
         if(op == 1){ // 1代表给目标单发消息
@@ -40,7 +42,20 @@ void Client::run() {
         Sleep(100);
 
         if(op == 2){
-            readMsgFromUser();
+            readMsg();
+        }
+
+        if(op == 3){
+            std::string groupTarget;
+            std::string msg;
+            
+            std::cout<<"what's your target?"<<std::endl;
+            std::cin>>groupTarget;
+            std::cout<<"what's your msg?"<<std::endl;
+            std::cin>>msg;
+            
+            std::cout<<"here 1"<<std::endl;
+            Msg2Group(groupTarget, msg);
         }
         
     }
@@ -94,16 +109,16 @@ int Client::logIn(std::string account, std::string pwd) {
 }
 
 void Client::Msg2User(std::string target, std::string msg){
-    std::cout<<"here 2"<<std::endl;
+    // std::cout<<"here 2"<<std::endl;
     auto pkg =
             PackageFactory::getInstance().createPackage2(myName, target, msg);
-    std::cout<<"pkg created successfully!"<<std::endl;
+    std::cout<<"pkg2 created successfully!"<<std::endl;
     send(clientSocket, pkg.start, pkg.size, 0);
-    std::cout<<"send successfully!"<<std::endl;
+    std::cout<<"send user successfully!"<<std::endl;
     // recv(clientSocket, buffer, MAX_BUFFER, 0);
 }
 
-void Client::readMsgFromUser(){
+void Client::readMsg(){
     memset(buffer, 0, MAX_BUFFER);
     recv(clientSocket, buffer, MAX_BUFFER, 0);
     Parser parser;
@@ -119,7 +134,13 @@ void Client::readMsgFromUser(){
     Sleep(50000);
 }
 
-
+void Client::Msg2Group(std::string groupTarget, std::string msg){
+    auto pkg =
+        PackageFactory::getInstance().createPackage3(myName, groupTarget, msg);
+    std::cout<<"pkg3 created successfully!"<<std::endl;
+    send(clientSocket, pkg.start, pkg.size, 0);
+    std::cout<<"send group msg successfully!"<<std::endl;
+}
 
 
 

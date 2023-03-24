@@ -90,4 +90,39 @@ Package PackageFactory::createPackage2(std::string account, std::string target, 
     return pkg;
 }
 
+Package PackageFactory::createPackage3(std::string account, std::string groupTarget, std::string msg ){
+    Package pkg;
+    pkg.size  = 40 + msg.size(); // 40 Byte is the size of PackageHead
+    pkg.start = new Byte[pkg.size];
+    
+    memset(pkg.start, 0, pkg.size);
+    
+    {
+
+        // 1.type
+        uint8_t type = 3;
+        memcpy(pkg.start, &type, 1);
+
+        // 2.account
+        memcpy(pkg.start + 1, account.c_str(), 10);
+
+        // 3.groupTarget
+        memcpy(pkg.start + 11, groupTarget.c_str(), 10);
+
+        // 4.msg_len
+        size_t msglen = msg.size();
+        memcpy(pkg.start + 25, &msglen, 2);
+
+        // 5.msg
+        memcpy(pkg.start + 40, msg.c_str(), msg.size());
+    }
+    return pkg;
+}
+
+
+
+
+
+
+
 
