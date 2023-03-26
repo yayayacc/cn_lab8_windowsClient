@@ -164,12 +164,14 @@ void Client::Msg2Group(std::string groupTarget, std::string msg){
 void Client::transferFile(std::string target, std::string filename){
     FILE* fp = fopen(filename.c_str(), "r");
     // TODO: 文件路径名拼接， 文件放在../file/
-    
+    std::cout<<"file open successfully!"<<std::endl;
 
     // 开始传文件
     int msgIndex = 0;
     while ((true)){
-        int read_length = fread(buffer, 1, MAX_BUFFER - 40, fp);
+        int read_length = fread((void*)buffer, 1, MAX_BUFFER - 40, fp);
+
+        std::cout<<"file read successfully!"<<std::endl;
 
         std::string tem;
         if(read_length != 0){
@@ -187,21 +189,25 @@ void Client::transferFile(std::string target, std::string filename){
         }
         send(clientSocket, pkg.start, pkg.size, 0);
 
+        std::cout<<"file transferred successfully!"<<std::endl;
+
         msgIndex += read_length;
     }
-    std::cout<<"文件传输完成"<<std::endl;
+    std::cout<<"file transfer is completed!"<<std::endl;
 }
 
 
 void Client::recvFile(){
     memset(buffer, 0, MAX_BUFFER);
-    recv(clientSocket, buffer, MAX_BUFFER, 0);
+    int recv_count = recv(clientSocket, buffer, MAX_BUFFER, 0);
     Parser parser;
 
     parser.parsePkgHead(buffer);
     parser.parseMsg(buffer);
 
-    std::string filename = parser.info.filename;
+    // std::string filename = parser.info.filename;
+    std::string filename = "this text.txt";
+
 
     std::map<std::string, int>::iterator iter = fileIndex.find(filename);
     if(iter == fileIndex.end()){
@@ -211,14 +217,21 @@ void Client::recvFile(){
     if(int(parser.info.opcode) == 4){ // 非断传报文
         // TODO: 路径名放到别的文件夹下可能要更改
         FILE* fp = fopen(filename.c_str(), "w"); // 非接收重传文件为w
+
+        std::cout<<"file opened successfully!"<<std::endl;
         
-        int recv_count;
-        while( (recv_count = recv(clientSocket, buffer, MAX_BUFFER, 0)) != 0){
-            fwrite((void*)buffer, 1, recv_count, fp);
-            fileIndex[filename] += recv_count;
+        fwrite((char*)buffer + 40, 1, recv_count, fp);
+        fileIndex[filename] += recv_count;
+
+        if(recv_count == MAX_BUFFER-40){
+            while( (recv_count = recv(clientSocket, buffer, MAX_BUFFER, 0)) != 0){
+                fwrite((char*)buffer + 40, 1, recv_count, fp);
+                fileIndex[filename] += recv_count;
+            }
         }
 
-        std::cout<<"文件接收完成"<<std::endl;
+        fclose(fp);
+        std::cout<<"file received successfully!"<<std::endl;
     }
 
     if(int(parser.info.opcode) == 6){ // 断传报文
@@ -226,12 +239,14 @@ void Client::recvFile(){
         FILE* fp = fopen(filename.c_str(), "a"); // 非接收重传文件为w
         
         int recv_count;
-        while( (recv_count = recv(clientSocket, buffer, MAX_BUFFER, 0)) != 0){
-            fwrite((void*)buffer, 1, recv_count, fp);
+        fwrite((char*)buffer + 40, 1, recv_count, fp);
+        fileIndex[filename] += recv_count;
+
+        fwrite((char*)buffer + 40, 1, recv_count, fp);
             fileIndex[filename] += recv_count;
 
-        }
-        std::cout<<"文件断传完成"<<std::endl;
+        fclose(fp);
+        std::cout<<"file received successfully!"<<std::endl;
     }
     
 }
