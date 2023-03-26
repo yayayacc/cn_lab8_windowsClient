@@ -22,7 +22,9 @@ void Client::run() {
     while(1){
         int op;
         std::cout<<"what's your option? "<<std::endl<<"-1 sendMsg2User"<<std::endl<<"-2 receiveMsgFromUser"<<std::endl;
-        std::cout<<"-3 senMst2Group"<<std::endl<<"-4 receiveMsgFromGroup"<<std::endl;
+        std::cout<<"-3 senMsg2Group"<<std::endl<<"-4 sendFile2User"<<std::endl;
+        std::cout<<"-5 recvFileFromUser"<<std::endl<<"-4 sendFile2User"<<std::endl;
+
 
         std::cin>>op;
         
@@ -45,7 +47,7 @@ void Client::run() {
             readMsg();
         }
 
-        if(op == 3){
+        if(op == 3){ // 发送组消息
             std::string groupTarget;
             std::string msg;
             
@@ -54,10 +56,25 @@ void Client::run() {
             std::cout<<"what's your msg?"<<std::endl;
             std::cin>>msg;
             
-            std::cout<<"here 1"<<std::endl;
+            // std::cout<<"here 1"<<std::endl;
             Msg2Group(groupTarget, msg);
         }
+
+        if(op == 4){ // 传送文件
+            std::string filename;
+            std::string target;
+
+            std::cout<<"who do you want to transfer a file?"<<std::endl;
+            std::cin>> target;
+            std::cout<<"what file do you want to transfer?"<<std::endl;
+            std::cin>>filename;
+
+            transferFile(target, filename);
+        }
         
+        if(op == 5){ // 接收文件
+            recvFile();
+        }
     }
 }
 
@@ -141,6 +158,91 @@ void Client::Msg2Group(std::string groupTarget, std::string msg){
     send(clientSocket, pkg.start, pkg.size, 0);
     std::cout<<"send group msg successfully!"<<std::endl;
 }
+
+
+
+void Client::transferFile(std::string target, std::string filename){
+    FILE* fp = fopen(filename.c_str(), "r");
+    // TODO: 文件路径名拼接， 文件放在../file/
+    
+
+    // 开始传文件
+    int msgIndex = 0;
+    while ((true)){
+        int read_length = fread(buffer, 1, MAX_BUFFER - 40, fp);
+
+        std::string tem;
+        if(read_length != 0){
+            tem.resize(read_length);
+            memcpy(const_cast<char*>(tem.c_str()), buffer, read_length);
+        }
+
+        memset(buffer, 0, MAX_BUFFER);
+
+        auto pkg =
+            PackageFactory::getInstance().createPackage4(myName, target, msgIndex, filename, tem);
+        if(read_length < MAX_BUFFER - 40){
+            send(clientSocket, pkg.start, pkg.size, 0);
+            break;
+        }
+        send(clientSocket, pkg.start, pkg.size, 0);
+
+        msgIndex += read_length;
+    }
+    std::cout<<"文件传输完成"<<std::endl;
+}
+
+
+void Client::recvFile(){
+    memset(buffer, 0, MAX_BUFFER);
+    recv(clientSocket, buffer, MAX_BUFFER, 0);
+    Parser parser;
+
+    parser.parsePkgHead(buffer);
+    parser.parseMsg(buffer);
+
+    std::string filename = parser.info.filename;
+
+    std::map<std::string, int>::iterator iter = fileIndex.find(filename);
+    if(iter == fileIndex.end()){
+        fileIndex.insert(std::pair<std::string, int>(filename, 0));
+    }
+
+    if(int(parser.info.opcode) == 4){ // 非断传报文
+        // TODO: 路径名放到别的文件夹下可能要更改
+        FILE* fp = fopen(filename.c_str(), "w"); // 非接收重传文件为w
+        
+        int recv_count;
+        while( (recv_count = recv(clientSocket, buffer, MAX_BUFFER, 0)) != 0){
+            fwrite((void*)buffer, 1, recv_count, fp);
+            fileIndex[filename] += recv_count;
+        }
+
+        std::cout<<"文件接收完成"<<std::endl;
+    }
+
+    if(int(parser.info.opcode) == 6){ // 断传报文
+        // TODO: 路径名放到别的文件夹下可能要更改
+        FILE* fp = fopen(filename.c_str(), "a"); // 非接收重传文件为w
+        
+        int recv_count;
+        while( (recv_count = recv(clientSocket, buffer, MAX_BUFFER, 0)) != 0){
+            fwrite((void*)buffer, 1, recv_count, fp);
+            fileIndex[filename] += recv_count;
+
+        }
+        std::cout<<"文件断传完成"<<std::endl;
+    }
+    
+}
+
+
+
+
+
+
+
+
 
 
 

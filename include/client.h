@@ -4,6 +4,9 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <map>
+#include <string>
+#include <string.h>
 
 #include"package_factory.h"
 #include"parser.h"
@@ -27,6 +30,8 @@ public:
     void Msg2User(std::string target, std::string msg);
     void Msg2Group(std::string groupTarget, std::string msg);
     void readMsg();
+    void transferFile(std::string target, std::string filename);
+    void recvFile();
 
 
     SOCKET clientSocket;
@@ -34,4 +39,5 @@ public:
 
     std::string myName;
     std::string myPwd;
+    std::map<std::string, int> fileIndex; // 用于存储每个文件传了多长
 };

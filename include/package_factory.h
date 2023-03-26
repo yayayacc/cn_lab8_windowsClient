@@ -40,7 +40,8 @@ public:
     static Package createPackage2(std::string account, std::string target, std::string msg );
     // 创建群发消息的报文
     static Package createPackage3(std::string account, std::string groupTarget, std::string msg );
-    // 
+    // 创建发送文件所需要的报文
+    static Package createPackage4(std::string account, std::string target, int mstIndex, std::string filename, std::string msg);
 
     static void releasePackage(Package pkg);
 };
