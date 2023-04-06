@@ -24,7 +24,7 @@ void Client::run() {
         std::cout<<"what's your option? "<<std::endl<<"-1 sendMsg2User"<<std::endl<<"-2 receiveMsgFromUser"<<std::endl;
         std::cout<<"-3 senMsg2Group"<<std::endl<<"-4 sendFile2User"<<std::endl;
         std::cout<<"-5 recvFileFromUser"<<std::endl<<"-6 askReTransfer"<<std::endl;
-        std::cout<<"-7 reTransfer"<<std::endl<<"-8 askReTransfer"<<std::endl;
+        std::cout<<"-7 reTransfer"<<std::endl<<"-8 close Client"<<std::endl;
 
 
         std::cin>>op;
@@ -91,6 +91,12 @@ void Client::run() {
 
         if(op == 7){
             waitingForReTransfer();
+        }
+
+        if(op == 8){
+            closesocket(clientSocket);
+            WSACleanup();
+            return;
         }
     }
 }
