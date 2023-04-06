@@ -23,7 +23,8 @@ void Client::run() {
         int op;
         std::cout<<"what's your option? "<<std::endl<<"-1 sendMsg2User"<<std::endl<<"-2 receiveMsgFromUser"<<std::endl;
         std::cout<<"-3 senMsg2Group"<<std::endl<<"-4 sendFile2User"<<std::endl;
-        std::cout<<"-5 recvFileFromUser"<<std::endl<<"-4 sendFile2User"<<std::endl;
+        std::cout<<"-5 recvFileFromUser"<<std::endl<<"-6 askReTransfer"<<std::endl;
+        std::cout<<"-7 reTransfer"<<std::endl<<"-8 askReTransfer"<<std::endl;
 
 
         std::cin>>op;
@@ -74,6 +75,22 @@ void Client::run() {
         
         if(op == 5){ // 接收文件
             recvFile();
+        }
+
+        if(op == 6){ // 请求断传某个文件
+            std::string filename;
+            std::string target;
+
+            std::cout<<"who do you want to receive a file from?"<<std::endl;
+            std::cin>> target;
+            std::cout<<"what file do you want to receive?"<<std::endl;
+            std::cin>>filename;
+
+            askForTransfer(target, filename);
+        }
+
+        if(op == 7){
+            waitingForReTransfer();
         }
     }
 }
@@ -206,7 +223,7 @@ void Client::recvFile(){
     parser.parseMsg(buffer);
 
     // std::string filename = parser.info.filename;
-    std::string filename = "this text.txt";
+    std::string filename = "this text.txt"; // 这里是我暂时存到同一目录下了
 
 
     std::map<std::string, int>::iterator iter = fileIndex.find(filename);
@@ -238,23 +255,99 @@ void Client::recvFile(){
         // TODO: 路径名放到别的文件夹下可能要更改
         FILE* fp = fopen(filename.c_str(), "a"); // 非接收重传文件为w
         
-        int recv_count;
+        std::cout<<"file opened successfully!"<<std::endl;
+        
         fwrite((char*)buffer + 40, 1, recv_count, fp);
         fileIndex[filename] += recv_count;
 
-        fwrite((char*)buffer + 40, 1, recv_count, fp);
-            fileIndex[filename] += recv_count;
-
-        fclose(fp);
+        if(recv_count == MAX_BUFFER-40){
+            while( (recv_count = recv(clientSocket, buffer, MAX_BUFFER, 0)) != 0){
+                fwrite((char*)buffer + 40, 1, recv_count, fp);
+                fileIndex[filename] += recv_count;
+            }
+        }
         std::cout<<"file received successfully!"<<std::endl;
     }
     
 }
 
 
+void Client::askForTransfer(std::string target, std::string filename){
+    if(fileIndex.find(filename) == fileIndex.end()){
+        fileIndex[filename] = 0;
+    }
+    auto pkg =
+            PackageFactory::getInstance().createPackage6(myName, target, filename, fileIndex[filename]);
+    send(clientSocket, pkg.start, pkg.size, 0);
+    std::cout<<"ask for retransfer successfully!"<<std::endl;
+
+    recvFile();
+}
+
+void Client::waitingForReTransfer(){
+    memset(buffer, 0, MAX_BUFFER);
+    int recv_count = recv(clientSocket, buffer, MAX_BUFFER, 0);
+    Parser parser;
+
+    parser.parsePkgHead(buffer);
+    parser.parseMsg(buffer);
+
+    uint32_t msgIndex = parser.info.msgindex;
+    std::string target = parser.info.account; // 收到的报文的发送者 是 需要文件的那一方
+    std::string filename = parser.info.filename;
+    
+    std::cout<<"pos 1  -----------"<<std::endl;
+    Sleep(5000);
+
+    std::cout<<"account  :  "<<parser.info.account<<std::endl;
+    std::cout<<"filename  :  "<<parser.info.filename<<std::endl;
+    std::cout<<"msgidx  :  "<<parser.info.msgindex<<std::endl;
+    std::cout<<"msglen  :  "<<parser.info.msglen<<std::endl;
+    std::cout<<"opcode  :  "<<parser.info.opcode<<std::endl;
+    std::cout<<"target  :  "<<parser.info.target<<std::endl;
 
 
+    FILE* fp = fopen(parser.info.filename.c_str(), "r");
+    for(int i = 0; i < parser.info.msgindex; ++i){ // 把指针指到需要传输的字节
+        fread(buffer, 1, 1, fp);
+        std::cout<<"往后移动了"<<i+1<<"个位置"<<std::endl;
+    }
 
+
+    std::cout<<"pos 2  -----------"<<std::endl;
+    Sleep(5000);
+
+
+    while (true){
+        int read_length = fread((void*)buffer, 1, MAX_BUFFER - 40, fp);
+
+        std::cout<<"file read successfully!"<<std::endl;
+
+        std::string tem;
+        if(read_length != 0){
+            tem.resize(read_length);
+            memcpy(const_cast<char*>(tem.c_str()), buffer, read_length);
+        }
+
+        memset(buffer, 0, MAX_BUFFER);
+
+        std::cout<<"pos 3  -----------"<<std::endl;
+        Sleep(5000);
+
+        auto pkg =
+            PackageFactory::getInstance().createPackage4(myName, target, msgIndex, filename, tem);
+        if(read_length < MAX_BUFFER - 40){
+            send(clientSocket, pkg.start, pkg.size, 0);
+            break;
+        }
+        send(clientSocket, pkg.start, pkg.size, 0);
+
+        std::cout<<"file transferred successfully!"<<std::endl;
+
+        msgIndex += read_length;
+    }
+    std::cout<<"file transfer is completed!"<<std::endl;
+}
 
 
 

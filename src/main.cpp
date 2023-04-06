@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <WinSock2.h>
+
 
 #include "client.h"
 #include "gui.h"
@@ -21,8 +23,12 @@ int main() {
     }
 
     Client      client;
-    char const* hostIP   = "192.168.1.103"; // TODO:这一部分后面需要更改，可能需要改成NAT穿透
-    char const* hostPort = "6666";
+
+    struct hostent* myhost = gethostbyname("70s43w1165.imdo.co");
+    char const* hostIP = inet_ntoa(*(struct in_addr*)myhost->h_addr_list[0]);
+
+    // char const* hostIP   = "192.168.1.103"; // TODO:这一部分后面需要更改，可能需要改成NAT穿透
+    char const* hostPort = "17451"; // 6666
 
     client.creatSocket(servADDR, hostIP, hostPort);
     // 到这一行就已经完成了套接字的创建，接下来就是链接目标主机进行登录的部分了。

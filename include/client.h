@@ -32,6 +32,8 @@ public:
     void readMsg();
     void transferFile(std::string target, std::string filename);
     void recvFile();
+    void askForTransfer(std::string target, std::string filename);
+    void waitingForReTransfer();
 
 
     SOCKET clientSocket;
