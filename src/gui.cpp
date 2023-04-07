@@ -1,3 +1,5 @@
+#include "gui.h"
+
 void GUI::drawGUI() {
     ImGui::Begin("TEST00");
     if (ImGui::Button("Button")) {
