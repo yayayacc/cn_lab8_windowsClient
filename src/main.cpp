@@ -1,17 +1,13 @@
+#pragma warning(disable : 4996)
+
+#include <WinSock2.h>
 #include <iostream>
 #include <string>
-#include <WinSock2.h>
-
 
 #include "client.h"
 #include "gui.h"
 #include "package_factory.h"
 #include "parser.h"
-
-// int main() {
-//     GUI gui;
-//     gui.run();
-// }
 
 int main() {
     WSADATA     wsadata;
@@ -22,34 +18,22 @@ int main() {
         exit(1);
     }
 
-    Client      client;
+    Client client;
 
-    struct hostent* myhost = gethostbyname("70s43w1165.imdo.co");
-    char const* hostIP = inet_ntoa(*(struct in_addr*)myhost->h_addr_list[0]);
+    // struct hostent* myhost = gethostbyname("70s43w1165.imdo.co");
+    // char const*     hostIP = inet_ntoa(*(struct in_addr*)myhost->h_addr_list[0]);
 
-    // char const* hostIP   = "192.168.1.103"; // TODO:这一部分后面需要更改，可能需要改成NAT穿透
-    char const* hostPort = "17451"; // 6666
+    // TODO:这一部分后面需要更改，可能需要改成NAT穿透
+    char const* hostIP   = "172.20.144.1";
+    char const* hostPort = "6666";
+    // char const* hostPort = "17451";
 
-    client.creatSocket(servADDR, hostIP, hostPort);
-    // 到这一行就已经完成了套接字的创建，接下来就是链接目标主机进行登录的部分了。
+    client.createSocket(servADDR, hostIP, hostPort);
     connect(client.clientSocket, (SOCKADDR*)&servADDR, sizeof(servADDR));
+
     std::cout << "connect successfully!" << std::endl;
+
     client.run();
-
-    // {
-    //     auto pkg =
-    //         PackageFactory::createLoginPackage("1234567890", "password");
-
-    //     Parser parser;
-
-    //     uint32_t ret = parser.parsePkgHead(pkg.start);
-    //     parser.parseContent(pkg.start + 40);
-
-    //     std::cout << parser.info.account << std::endl;
-    //     std::cout << parser.info.password << std::endl;
-
-    //     PackageFactory::releasePackage(pkg);
-    // }
 
     return 0;
 }
