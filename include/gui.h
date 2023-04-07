@@ -504,5 +504,3 @@ public:
 LRESULT WINAPI MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return GUI::getInstance().WndProc(hWnd, msg, wParam, lParam);
 }
-
-// #include "gui.inl"
