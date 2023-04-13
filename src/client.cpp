@@ -114,8 +114,77 @@ int Client::logIn(std::string account, std::string pwd) {
     myName = account;
     myPwd  = pwd;
 
+    std::cout << myName << std::endl;
+    std::cout << myPwd << std::endl;
+
     auto pkg =
         PackageFactory::getInstance().createLoginPackage(myName.c_str(), myPwd);
+
+    send(clientSocket, pkg.start, pkg.size, 0);
+    std::cout << "send successfully!" << std::endl;
+    recv(clientSocket, buffer, MAX_BUFFER, 0);
+
+    Parser parser;
+    parser.parsePkgHead(buffer);
+    std::cout << int(parser.info.opcode) << std::endl;
+    parser.parseMsg(buffer);
+    memset(buffer, 0, MAX_BUFFER);
+
+    char type = char(*parser.msg.c_str());
+
+    std::cout << "-----" << parser.msg << std::endl;
+    if (type == 'a') {
+        std::cout << "log in successfully!" << std::endl;
+        return 1;
+    }
+    else if (type == 'b') {
+        std::cout << "your pwd is wrong!" << std::endl;
+        return 2;
+    }
+    else if (type == 'c') {
+        std::cout << "this account does not exist!" << std::endl;
+        return 3;
+    }
+
+    return 0;
+}
+
+int Client::logInRF(std::string account, std::string pwd) {
+    auto pkg =
+        PackageFactory::getInstance().createLoginPackage(account.c_str(), pwd);
+
+    send(clientSocket, pkg.start, pkg.size, 0);
+    std::cout << "send successfully!" << std::endl;
+    recv(clientSocket, buffer, MAX_BUFFER, 0);
+
+    Parser parser;
+    parser.parsePkgHead(buffer);
+    std::cout << int(parser.info.opcode) << std::endl;
+    parser.parseMsg(buffer);
+    memset(buffer, 0, MAX_BUFFER);
+
+    char type = char(*parser.msg.c_str());
+
+    std::cout << "-----" << parser.msg << std::endl;
+    if (type == 'a') {
+        std::cout << "log in successfully!" << std::endl;
+        return 1;
+    }
+    else if (type == 'b') {
+        std::cout << "your pwd is wrong!" << std::endl;
+        return 2;
+    }
+    else if (type == 'c') {
+        std::cout << "this account does not exist!" << std::endl;
+        return 3;
+    }
+
+    return 0;
+}
+
+int Client::logInRM(std::string account, std::string pwd) {
+    auto pkg =
+        PackageFactory::getInstance().createLoginPackage(account.c_str(), pwd);
 
     send(clientSocket, pkg.start, pkg.size, 0);
     std::cout << "send successfully!" << std::endl;
@@ -156,7 +225,7 @@ void Client::Msg2User(std::string target, std::string msg) {
     // recv(clientSocket, buffer, MAX_BUFFER, 0);
 }
 
-void Client::readMsg() {
+MsgInfo Client::readMsg() {
     memset(buffer, 0, MAX_BUFFER);
     recv(clientSocket, buffer, MAX_BUFFER, 0);
     Parser parser;
@@ -164,12 +233,7 @@ void Client::readMsg() {
     parser.parsePkgHead(buffer);
     parser.parseMsg(buffer);
 
-    std::cout << "account" << parser.info.account << std::endl;
-    std::cout << "target" << parser.info.target << std::endl;
-    std::cout << "msglen" << parser.info.msglen << std::endl;
-
-    std::cout << "msg" << parser.msg << std::endl;
-    Sleep(50000);
+    return MsgInfo{parser.info.account, parser.info.target, parser.msg};
 }
 
 void Client::Msg2Group(std::string groupTarget, std::string msg) {
