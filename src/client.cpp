@@ -14,6 +14,34 @@ void Client::createSocket(SOCKADDR_IN& hostAddr, char const* hostIP, char const*
     hostAddr.sin_port        = htons(atoi(hostPort));
 }
 
+void Client::createSocketRM(SOCKADDR_IN& hostAddr, char const* hostIP, char const* hostPort) {
+    clientSocketRM = socket(PF_INET, SOCK_STREAM, 0);
+    if (clientSocketRM == INVALID_SOCKET) {
+        std::cout << "creat socket failed!" << std::endl;
+        exit(1);
+    }
+
+    memset(&hostAddr, 0, sizeof(hostAddr));
+    hostAddr.sin_family = AF_INET;
+    // hostAddr.sin_addr.s_addr = inet_addr(hostIP);
+    hostAddr.sin_addr.s_addr = inet_addr(hostIP);
+    hostAddr.sin_port        = htons(atoi(hostPort));
+}
+
+void Client::createSocketRF(SOCKADDR_IN& hostAddr, char const* hostIP, char const* hostPort) {
+    clientSocketRF = socket(PF_INET, SOCK_STREAM, 0);
+    if (clientSocketRF == INVALID_SOCKET) {
+        std::cout << "creat socket failed!" << std::endl;
+        exit(1);
+    }
+
+    memset(&hostAddr, 0, sizeof(hostAddr));
+    hostAddr.sin_family = AF_INET;
+    // hostAddr.sin_addr.s_addr = inet_addr(hostIP);
+    hostAddr.sin_addr.s_addr = inet_addr(hostIP);
+    hostAddr.sin_port        = htons(atoi(hostPort));
+}
+
 void Client::run() {
     if (logIn("cc12345678", "123456") != 1) {
         closesocket(clientSocket);
@@ -135,6 +163,18 @@ int Client::logIn(std::string account, std::string pwd) {
     std::cout << "-----" << parser.msg << std::endl;
     if (type == 'a') {
         std::cout << "log in successfully!" << std::endl;
+        if (account == "cc") {
+            logInRF("cc_RM", "123456");
+            logInRF("cc_RF", "123456");
+        }
+        else if (account == "core") {
+            logInRF("core_RF", "654321");
+            logInRM("core_RM", "654321");
+        }
+        else if (account == "godlike") {
+            logInRF("godlike_RF", "likegod");
+            logInRM("godlike_RM", "likegod");
+        }
         return 1;
     }
     else if (type == 'b') {
@@ -227,7 +267,7 @@ void Client::Msg2User(std::string target, std::string msg) {
 
 MsgInfo Client::readMsg() {
     memset(buffer, 0, MAX_BUFFER);
-    recv(clientSocket, buffer, MAX_BUFFER, 0);
+    recv(clientSocketRM, buffer, MAX_BUFFER, 0);
     Parser parser;
 
     parser.parsePkgHead(buffer);
@@ -281,7 +321,7 @@ void Client::transferFile(std::string target, std::string filename) {
 
 void Client::recvFile() {
     memset(buffer, 0, MAX_BUFFER);
-    int    recv_count = recv(clientSocket, buffer, MAX_BUFFER, 0);
+    int    recv_count = recv(clientSocketRF, buffer, MAX_BUFFER, 0);
     Parser parser;
 
     parser.parsePkgHead(buffer);
@@ -305,7 +345,7 @@ void Client::recvFile() {
         fileIndex[filename] += recv_count;
 
         if (recv_count == MAX_BUFFER - 40) {
-            while ((recv_count = recv(clientSocket, buffer, MAX_BUFFER, 0)) != 0) {
+            while ((recv_count = recv(clientSocketRF, buffer, MAX_BUFFER, 0)) != 0) {
                 fwrite((char*)buffer + 40, 1, recv_count, fp);
                 fileIndex[filename] += recv_count;
             }
@@ -325,7 +365,7 @@ void Client::recvFile() {
         fileIndex[filename] += recv_count;
 
         if (recv_count == MAX_BUFFER - 40) {
-            while ((recv_count = recv(clientSocket, buffer, MAX_BUFFER, 0)) != 0) {
+            while ((recv_count = recv(clientSocketRF, buffer, MAX_BUFFER, 0)) != 0) {
                 fwrite((char*)buffer + 40, 1, recv_count, fp);
                 fileIndex[filename] += recv_count;
             }
