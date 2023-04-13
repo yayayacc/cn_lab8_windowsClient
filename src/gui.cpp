@@ -1,20 +1,26 @@
 #include "gui.h"
 
-void GUI::drawGUI() {
-    ImGui::Begin("TEST00");
-    if (ImGui::Button("Button")) {
-        std::cout << "hello world\n";
-    }
-    ImGui::End();
+// #include <WinSock2.h>
 
-    ImGui::Begin("TEST01");
-    std::string test;
-    char        buffer[256];
-    memset(buffer, 0, sizeof(buffer));
-    strcpy_s(buffer, sizeof(buffer), test.c_str());
-    if (ImGui::InputText("Name", buffer, sizeof(buffer))) {
-        if (!buffer[0]) buffer[0] = ' ';
-        test = std::string(buffer);
+void GUI::init() {
+    WSADATA     wsadata;
+    SOCKADDR_IN servADDR;
+
+    if (WSAStartup(MAKEWORD(2, 2), &wsadata) != 0) {
+        std::cout << "wsa start up failed!" << std::endl;
+        exit(1);
     }
-    ImGui::End();
+
+    struct hostent* myhost = gethostbyname("70s43w1165.imdo.co");
+    char const*     hostIP = inet_ntoa(*(struct in_addr*)myhost->h_addr_list[0]);
+
+    char const* hostPort = "17451";
+
+    client.createSocket(servADDR, hostIP, hostPort);
+    connect(client.clientSocket, (SOCKADDR*)&servADDR, sizeof(servADDR));
+
+    std::cout << "connect successfully!" << std::endl;
+}
+
+void GUI::shutdown() {
 }

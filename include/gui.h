@@ -10,6 +10,9 @@
 #include "imgui/imgui_impl_dx12.h"
 #include "imgui/imgui_impl_win32.h"
 
+#include "app_data.h"
+#include "client.h"
+
 #ifdef _DEBUG
 #define DX12_ENABLE_DEBUG_LAYER
 #endif
@@ -35,56 +38,64 @@ static LRESULT WINAPI MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 class GUI {
     GUI() = default;
 
+    enum class STATE : uint8_t {
+        NOT_LOG_IN,
+        HAS_LOG_IN,
+    };
+
+public:
+    AppDataPack app_data;
+    Client      client;
+
+    STATE state{STATE::NOT_LOG_IN};
+
 public:
     static GUI& getInstance() {
         static GUI instance;
         return instance;
     }
 
+    void init();
+    void shutdown();
+
     void drawGUI();
+    void loginGUI();
+    void commonGUI();
+
+    void drawList();
+    void drawInput();
+    void drawText();
 
     void run() {
-        // Create application window
-        // ImGui_ImplWin32_EnableDpiAwareness();
         WNDCLASSEXW wc = {sizeof(wc), CS_CLASSDC, MainWndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, L"ImGui Example", NULL};
         ::RegisterClassExW(&wc);
-        HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Dear ImGui DirectX12 Example", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
+        HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"App", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
 
-        // Initialize Direct3D
         if (!CreateDeviceD3D(hwnd)) {
             CleanupDeviceD3D();
             ::UnregisterClassW(wc.lpszClassName, wc.hInstance);
             return;
         }
 
-        // Show the window
         ::ShowWindow(hwnd, SW_SHOWDEFAULT);
         ::UpdateWindow(hwnd);
 
-        // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
         (void)io;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-        // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;   // Enable Docking
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
-        // io.ConfigViewportsNoAutoMerge = true;
-        // io.ConfigViewportsNoTaskBarIcon = true;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   // Enable Multi-Viewport / Platform Windows
 
-        // Setup Dear ImGui style
-        // ImGui::StyleColorsDark();
         ImGui::StyleColorsLight();
 
-        // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
         ImGuiStyle& style = ImGui::GetStyle();
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
             style.WindowRounding              = 0.0f;
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
 
-        // Setup Platform/Renderer backends
         ImGui_ImplWin32_Init(hwnd);
         ImGui_ImplDX12_Init(g_pd3dDevice, NUM_FRAMES_IN_FLIGHT,
                             DXGI_FORMAT_R8G8B8A8_UNORM, g_pd3dSrvDescHeap,
@@ -95,10 +106,8 @@ public:
             std::filesystem::path(XSTR(ROOT_DIR)) / "asset/font/JetBrainsMono-Light.ttf";
         io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), 22.0f);
 
-        // Our state
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-        // Main loop
         bool done = false;
         while (!done) {
             // Poll and handle messages (inputs, window resize, etc.)
@@ -176,7 +185,9 @@ public:
                     ImGui::EndMenuBar();
                 }
 
+                // Here
                 drawGUI();
+                // client.run();
             }
 
             ImGui::End();
