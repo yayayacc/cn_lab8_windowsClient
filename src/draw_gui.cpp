@@ -65,26 +65,51 @@ void GUI::drawList() {
     {
         // std::cout << app_data.selected_item << std::endl;
         if (ImGui::Selectable("cc12345678", app_data.selected_item == "cc12345678")) {
-            app_data.selected_item = "cc12345678";
-            app_data.is_group      = false;
+            app_data.selected_item  = "cc12345678";
+            app_data.send_msg_item  = "cc123456RM";
+            app_data.send_file_item = "cc123456RF";
+            app_data.is_group       = false;
         }
 
         if (ImGui::Selectable("core123456", app_data.selected_item == "core123456")) {
-            app_data.selected_item = "core123456";
-            app_data.is_group      = false;
+            app_data.selected_item  = "core123456";
+            app_data.send_msg_item  = "core1234RM";
+            app_data.send_file_item = "core1234RF";
+            app_data.is_group       = false;
         }
 
         if (ImGui::Selectable("godlike123", app_data.selected_item == "godlike123")) {
-            app_data.selected_item = "godlike123";
-            app_data.is_group      = false;
+            app_data.selected_item  = "godlike123";
+            app_data.send_msg_item  = "godlike_RM";
+            app_data.send_file_item = "godlike_RF";
+            app_data.is_group       = false;
         }
 
         if (ImGui::Selectable("groupChat1", app_data.selected_item == "groupChat1")) {
-            app_data.selected_item = "groupChat1";
-            app_data.is_group      = true;
+            app_data.selected_item  = "groupChat1";
+            app_data.send_msg_item  = "groupChat1";
+            app_data.send_file_item = "groupChat1";
+            app_data.is_group       = true;
         }
     }
     ImGui::End();
+}
+
+static std::string openFile(const char* filter = "") {
+    OPENFILENAMEA ofn;
+    CHAR          szFile[260] = {0};
+    ZeroMemory(&ofn, sizeof(OPENFILENAME));
+    ofn.lStructSize  = sizeof(OPENFILENAME);
+    ofn.hwndOwner    = FindWindow(L"MainWnd", NULL);
+    ofn.lpstrFile    = szFile;
+    ofn.nMaxFile     = sizeof(szFile);
+    ofn.lpstrFilter  = filter;
+    ofn.nFilterIndex = 1;
+    ofn.Flags        = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+    if (GetOpenFileNameA(&ofn) == TRUE) {
+        return ofn.lpstrFile;
+    }
+    return std::string{};
 }
 
 void GUI::drawInput() {
@@ -93,11 +118,21 @@ void GUI::drawInput() {
 
     if (ImGui::Button("Send")) {
         if (!app_data.is_group)
-            client.Msg2User(app_data.selected_item, app_data.input_buffer);
+            client.Msg2User(app_data.send_msg_item, app_data.input_buffer);
         else
-            client.Msg2Group(app_data.selected_item, app_data.input_buffer);
+            client.Msg2Group(app_data.send_msg_item, client.myName + ":" + app_data.input_buffer);
+
+        app_data.msg_record[app_data.selected_item].append("Me:" + app_data.input_buffer + "\n");
 
         app_data.input_buffer.clear();
+    }
+
+    ImGui::End();
+
+    ImGui::Begin("File");
+
+    if (ImGui::Button("Send")) {
+        client.transferFile(app_data.send_file_item, openFile());
     }
 
     ImGui::End();
@@ -105,6 +140,8 @@ void GUI::drawInput() {
 
 void GUI::drawText() {
     ImGui::Begin("Text");
+
+    ImGui::Text("%s", app_data.msg_record[app_data.selected_item].c_str());
 
     ImGui::End();
 }

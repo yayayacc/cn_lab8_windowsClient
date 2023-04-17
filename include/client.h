@@ -49,6 +49,8 @@ public:
     SOCKET clientSocketRM;
 
     char buffer[MAX_BUFFER];
+    char buffer_RM[MAX_BUFFER];
+    char buffer_RF[MAX_BUFFER];
 
     std::string                myName;
     std::string                myPwd;

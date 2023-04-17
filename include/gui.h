@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <iostream>
 #include <tchar.h>
+#include <thread>
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_dx12.h"
@@ -24,6 +25,12 @@
 // https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html
 #define XSTR(s) STR(s)
 #define STR(s) #s
+
+inline std::wstring AnsiToWString(const std::string& str) {
+    WCHAR buffer[512];
+    MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, buffer, 512);
+    return std::wstring(buffer);
+}
 
 struct FrameContext {
     ID3D12CommandAllocator* CommandAllocator;
@@ -47,6 +54,8 @@ public:
     AppDataPack app_data;
     Client      client;
 
+    bool is_quit{false};
+
     STATE state{STATE::NOT_LOG_IN};
 
 public:
@@ -67,7 +76,7 @@ public:
     void drawText();
 
     void run() {
-        WNDCLASSEXW wc = {sizeof(wc), CS_CLASSDC, MainWndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, L"ImGui Example", NULL};
+        WNDCLASSEXW wc = {sizeof(wc), CS_CLASSDC, MainWndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, L"MainWnd", NULL};
         ::RegisterClassExW(&wc);
         HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"App", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
 
@@ -108,21 +117,38 @@ public:
 
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-        bool done = false;
-        while (!done) {
-            // Poll and handle messages (inputs, window resize, etc.)
-            // See the WndProc() function below for our to dispatch events to the Win32 backend.
+        std::thread readMsg_thread([gui_ptr = this]() {
+            while (!gui_ptr->is_quit) {
+                if (gui_ptr->state == STATE::HAS_LOG_IN) {
+                    auto msg_info = gui_ptr->client.readMsg();
+                    gui_ptr->app_data.msg_record[msg_info.account].append(msg_info.account + ":" + msg_info.msg + "\n");
+                }
+            }
+        });
+
+        std::thread recvFile_thread([gui_ptr = this]() {
+            while (!gui_ptr->is_quit) {
+                if (gui_ptr->state == STATE::HAS_LOG_IN) {
+                    gui_ptr->client.recvFile();
+                }
+            }
+        });
+
+        while (!is_quit) {
+            std::wstring window_text =
+                L"App - " + AnsiToWString(client.myName);
+            // SetWindowText(FindWindow(L"MainWnd", NULL), window_text.c_str());
+
             MSG msg;
             while (::PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE)) {
                 ::TranslateMessage(&msg);
                 ::DispatchMessage(&msg);
                 if (msg.message == WM_QUIT)
-                    done = true;
+                    is_quit = true;
             }
-            if (done)
+            if (is_quit)
                 break;
 
-            // Start the Dear ImGui frame
             ImGui_ImplDX12_NewFrame();
             ImGui_ImplWin32_NewFrame();
             ImGui::NewFrame();
@@ -135,8 +161,6 @@ public:
                 bool                      opt_fullscreen            = opt_fullscreen_persistant;
                 static ImGuiDockNodeFlags dockspace_flags           = ImGuiDockNodeFlags_None;
 
-                // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-                // because it would be confusing to have two docking targets within each others.
                 ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
                 if (opt_fullscreen) {
                     ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -149,15 +173,9 @@ public:
                     window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
                 }
 
-                // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
                 if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
                     window_flags |= ImGuiWindowFlags_NoBackground;
 
-                // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
-                // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
-                // all active windows docked into it will lose their parent and become undocked.
-                // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
-                // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
                 ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
                 ImGui::PopStyleVar();
@@ -174,10 +192,6 @@ public:
 
                 if (ImGui::BeginMenuBar()) {
                     if (ImGui::BeginMenu("Menu")) {
-                        // Disabling fullscreen would allow the window to be moved to the front of other windows,
-                        // which we can't undo at the moment without finer window depth/z control.
-                        // ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
-
                         if (ImGui::MenuItem("Exit")) return;
                         ImGui::EndMenu();
                     }
@@ -187,7 +201,6 @@ public:
 
                 // Here
                 drawGUI();
-                // client.run();
             }
 
             ImGui::End();
@@ -247,7 +260,11 @@ public:
         CleanupDeviceD3D();
         ::DestroyWindow(hwnd);
         ::UnregisterClassW(wc.lpszClassName, wc.hInstance);
+
+        readMsg_thread.join();
+        recvFile_thread.join();
     }
+
     bool CreateDeviceD3D(HWND hWnd) {
         // Setup swap chain
         DXGI_SWAP_CHAIN_DESC1 sd;
