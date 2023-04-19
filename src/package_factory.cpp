@@ -147,7 +147,7 @@ Package PackageFactory::createPackage4(const std::string& account, const std::st
         // 7.msg
         memcpy(pkg.start + 40, msg.c_str(), msg.size());
 
-        std::cout << "MSG: " << msg << " MSG_Size: " << msg.size() << std::endl;
+        std::cout << " MSG_Size: " << msg.size() << std::endl;
     }
     return pkg;
 }

@@ -296,18 +296,20 @@ void Client::transferFile(std::string target, std::string filename) {
     std::cout << "file open successfully!" << std::endl;
 
     fseek(fp, 0, SEEK_SET);
-
+    int NoPkg = 0;
     // 开始传文件
     int msgIndex = 0;
-    while (true) {
+    int read_length;
+    while (!feof(fp)) {
         memset(buffer, 0, MAX_BUFFER);
-        int read_length = fread((void*)buffer, 1, MAX_BUFFER - 40, fp);
+        read_length = fread((void*)buffer, 1, MAX_BUFFER - 40, fp);
 
         if (read_length == 0)
             break;
 
         std::string tem;
-        std::cout << "read_length: " << read_length << std::endl;
+        NoPkg++;
+        std::cout << "read_length: " << read_length << "   NO PKG: " << NoPkg << std::endl;
         tem.resize(read_length);
         memcpy(const_cast<char*>(tem.c_str()), buffer, read_length);
 
@@ -320,10 +322,10 @@ void Client::transferFile(std::string target, std::string filename) {
         parser.parsePkgHead(pkg.start);
         parser.parseMsg(pkg.start + 40);
 
-        std::cout << "pkg_size: " << pkg.size << std::endl;
+        // std::cout << "pkg_size: " << pkg.size << std::endl;
         send(clientSocket, pkg.start, pkg.size, 0);
 
-        std::cout << "file transferred successfully!" << std::endl;
+        // std::cout << "file transferred successfully!" << std::endl;
 
         if (read_length < MAX_BUFFER - 40)
             break;
@@ -335,8 +337,9 @@ void Client::transferFile(std::string target, std::string filename) {
 }
 
 void Client::recvFile() {
-    memset(buffer_RF, 0, MAX_BUFFER);
-    int    recv_count = recv(clientSocketRF, buffer_RF, MAX_BUFFER, 0);
+    memset(buffer_RF, 0, MAX_BUFFER + 1);
+    int recv_count = recv(clientSocketRF, buffer_RF, MAX_BUFFER, 0);
+
     Parser parser;
 
     std::cout << "recv_count: " << recv_count << std::endl;
@@ -354,42 +357,42 @@ void Client::recvFile() {
         fileIndex.insert(std::pair<std::string, int>(filename, 0));
     }
 
-    if (int(parser.info.opcode) == 4) {          // 非断传报文
-        FILE* fp = fopen(filename.c_str(), "a"); // 非接收重传文件为w
+    // if (int(parser.info.opcode) == 4) {          // 非断传报文
+    FILE* fp = fopen(filename.c_str(), "ab"); // 非接收重传文件为w
 
-        std::cout << "file opened successfully!" << std::endl;
+    // std::cout << "file opened successfully!" << std::endl;
 
-        fwrite((char*)buffer_RF + 40, 1, recv_count - 40, fp);
-        fileIndex[filename] += recv_count - 40;
+    fwrite((char*)buffer_RF + 40, 1, parser.info.msglen, fp);
+    fileIndex[filename] += recv_count - 40;
 
-        // if (recv_count == MAX_BUFFER) {
-        //     while ((recv_count = recv(clientSocketRF, buffer_RF, MAX_BUFFER, 0)) != 0) {
-        //         fwrite((char*)buffer_RF + 40, 1, recv_count - 40, fp);
-        //         fileIndex[filename] += recv_count - 40;
-        //     }
-        // }
+    // if (recv_count == MAX_BUFFER) {
+    //     while ((recv_count = recv(clientSocketRF, buffer_RF, MAX_BUFFER, 0)) != 0) {
+    //         fwrite((char*)buffer_RF + 40, 1, recv_count - 40, fp);
+    //         fileIndex[filename] += recv_count - 40;
+    //     }
+    // }
 
-        fclose(fp);
-        std::cout << "file received successfully!" << std::endl;
-    }
+    fclose(fp);
+    std::cout << "file received successfully!" << std::endl;
+    // }
 
-    if (int(parser.info.opcode) == 6) { // 断传报文
-        // TODO: 路径名放到别的文件夹下可能要更改
-        FILE* fp = fopen(filename.c_str(), "a"); // 非接收重传文件为w
+    // if (int(parser.info.opcode) == 6) { // 断传报文
+    //     // TODO: 路径名放到别的文件夹下可能要更改
+    //     FILE* fp = fopen(filename.c_str(), "a"); // 非接收重传文件为w
 
-        std::cout << "file opened successfully!" << std::endl;
+    //     std::cout << "file opened successfully!" << std::endl;
 
-        fwrite((char*)buffer_RF + 40, 1, recv_count, fp);
-        fileIndex[filename] += recv_count;
+    //     fwrite((char*)buffer_RF + 40, 1, recv_count, fp);
+    //     fileIndex[filename] += recv_count;
 
-        if (recv_count == MAX_BUFFER - 40) {
-            while ((recv_count = recv(clientSocketRF, buffer_RF, MAX_BUFFER, 0)) != 0) {
-                fwrite((char*)buffer_RF + 40, 1, recv_count, fp);
-                fileIndex[filename] += recv_count;
-            }
-        }
-        std::cout << "file received successfully!" << std::endl;
-    }
+    //     if (recv_count == MAX_BUFFER - 40) {
+    //         while ((recv_count = recv(clientSocketRF, buffer_RF, MAX_BUFFER, 0)) != 0) {
+    //             fwrite((char*)buffer_RF + 40, 1, recv_count, fp);
+    //             fileIndex[filename] += recv_count;
+    //         }
+    //     }
+    //     std::cout << "file received successfully!" << std::endl;
+    // }
 }
 
 void Client::askForTransfer(std::string target, std::string filename) {

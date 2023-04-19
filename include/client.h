@@ -53,7 +53,7 @@ public:
 
     char buffer[MAX_BUFFER];
     char buffer_RM[MAX_BUFFER];
-    char buffer_RF[MAX_BUFFER];
+    char buffer_RF[MAX_BUFFER + 1];
 
     std::string                myName;
     std::string                myPwd;
