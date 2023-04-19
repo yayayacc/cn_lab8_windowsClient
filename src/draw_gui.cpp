@@ -63,7 +63,6 @@ void GUI::commonGUI() {
 void GUI::drawList() {
     ImGui::Begin("List");
     {
-        // std::cout << app_data.selected_item << std::endl;
         if (ImGui::Selectable("cc12345678", app_data.selected_item == "cc12345678")) {
             app_data.selected_item  = "cc12345678";
             app_data.send_msg_item  = "cc123456RM";

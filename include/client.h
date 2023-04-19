@@ -11,7 +11,7 @@
 #include "package_factory.h"
 #include "parser.h"
 
-#define MAX_BUFFER 4095
+#define MAX_BUFFER 256
 
 struct MsgInfo {
     std::string account;
@@ -36,13 +36,16 @@ public:
     int logInRM(std::string account, std::string pwd);
 
     // 输入为目标账户名 和 消息内容
-    void    Msg2User(std::string target, std::string msg);
-    void    Msg2Group(std::string groupTarget, std::string msg);
+    void Msg2User(std::string target, std::string msg);
+    void Msg2Group(std::string groupTarget, std::string msg);
+
     MsgInfo readMsg();
-    void    transferFile(std::string target, std::string filename);
-    void    recvFile();
-    void    askForTransfer(std::string target, std::string filename);
-    void    waitingForReTransfer();
+
+    void transferFile(std::string target, std::string filename);
+    void recvFile();
+
+    void askForTransfer(std::string target, std::string filename);
+    void waitingForReTransfer();
 
     SOCKET clientSocket;
     SOCKET clientSocketRF;

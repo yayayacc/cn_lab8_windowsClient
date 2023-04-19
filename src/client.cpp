@@ -292,36 +292,45 @@ void Client::Msg2Group(std::string groupTarget, std::string msg) {
 }
 
 void Client::transferFile(std::string target, std::string filename) {
-    FILE* fp = fopen(filename.c_str(), "r");
+    FILE* fp = fopen(filename.c_str(), "rb");
     std::cout << "file open successfully!" << std::endl;
+
+    fseek(fp, 0, SEEK_SET);
 
     // 开始传文件
     int msgIndex = 0;
-    while ((true)) {
+    while (true) {
+        memset(buffer, 0, MAX_BUFFER);
         int read_length = fread((void*)buffer, 1, MAX_BUFFER - 40, fp);
 
-        std::cout << "file read successfully!" << std::endl;
+        if (read_length == 0)
+            break;
 
         std::string tem;
-        if (read_length != 0) {
-            tem.resize(read_length);
-            memcpy(const_cast<char*>(tem.c_str()), buffer, read_length);
-        }
+        std::cout << "read_length: " << read_length << std::endl;
+        tem.resize(read_length);
+        memcpy(const_cast<char*>(tem.c_str()), buffer, read_length);
 
         memset(buffer, 0, MAX_BUFFER);
 
         auto pkg =
             PackageFactory::getInstance().createPackage4(myName, target, msgIndex, filename, tem);
-        if (read_length < MAX_BUFFER - 40) {
-            send(clientSocket, pkg.start, pkg.size, 0);
-            break;
-        }
+
+        Parser parser;
+        parser.parsePkgHead(pkg.start);
+        parser.parseMsg(pkg.start + 40);
+
+        std::cout << "pkg_size: " << pkg.size << std::endl;
         send(clientSocket, pkg.start, pkg.size, 0);
 
         std::cout << "file transferred successfully!" << std::endl;
 
+        if (read_length < MAX_BUFFER - 40)
+            break;
+
         msgIndex += read_length;
     }
+    fclose(fp);
     std::cout << "file transfer is completed!" << std::endl;
 }
 
@@ -330,13 +339,13 @@ void Client::recvFile() {
     int    recv_count = recv(clientSocketRF, buffer_RF, MAX_BUFFER, 0);
     Parser parser;
 
+    std::cout << "recv_count: " << recv_count << std::endl;
+
     parser.parsePkgHead(buffer_RF);
     parser.parseMsg(buffer_RF);
 
     auto save_path =
         std::filesystem::path(XSTR(ROOT_DIR)) / "file/recv_file.txt";
-
-    std::cout << parser.info.filename << std::endl;
 
     std::string filename = save_path.string();
 
@@ -346,19 +355,19 @@ void Client::recvFile() {
     }
 
     if (int(parser.info.opcode) == 4) {          // 非断传报文
-        FILE* fp = fopen(filename.c_str(), "w"); // 非接收重传文件为w
+        FILE* fp = fopen(filename.c_str(), "a"); // 非接收重传文件为w
 
         std::cout << "file opened successfully!" << std::endl;
 
-        fwrite((char*)buffer_RF + 40, 1, recv_count, fp);
-        fileIndex[filename] += recv_count;
+        fwrite((char*)buffer_RF + 40, 1, recv_count - 40, fp);
+        fileIndex[filename] += recv_count - 40;
 
-        if (recv_count == MAX_BUFFER - 40) {
-            while ((recv_count = recv(clientSocketRF, buffer_RF, MAX_BUFFER, 0)) != 0) {
-                fwrite((char*)buffer_RF + 40, 1, recv_count, fp);
-                fileIndex[filename] += recv_count;
-            }
-        }
+        // if (recv_count == MAX_BUFFER) {
+        //     while ((recv_count = recv(clientSocketRF, buffer_RF, MAX_BUFFER, 0)) != 0) {
+        //         fwrite((char*)buffer_RF + 40, 1, recv_count - 40, fp);
+        //         fileIndex[filename] += recv_count - 40;
+        //     }
+        // }
 
         fclose(fp);
         std::cout << "file received successfully!" << std::endl;
