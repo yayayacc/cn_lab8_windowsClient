@@ -132,7 +132,7 @@ void GUI::drawInput() {
 
     if (ImGui::Button("Send")) {
         threadPool->Submit([gui_ptr = this]() {
-            gui_ptr->client.transferFile(gui_ptr->app_data.send_file_item, "E:/hello.pdf");
+            gui_ptr->client.transferFile(gui_ptr->app_data.send_file_item, openFile());
         });
     }
 
