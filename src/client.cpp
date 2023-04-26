@@ -349,7 +349,7 @@ void Client::transferFile(std::string target, std::string filename) {
     std::cout << "file open successfully!" << std::endl;
 
     auto        file_path    = std::filesystem::path(filename);
-    std::string realFileName = file_path.stem().string();
+    std::string realFileName = file_path.stem().string() + file_path.extension().string();
 
     fseek(fp, 0, SEEK_SET);
     int NoPkg = 0;
