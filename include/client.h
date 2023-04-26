@@ -27,6 +27,7 @@ public:
     void createSocket(SOCKADDR_IN& hostAddr, char const* hostIP, char const* hostPort);
     void createSocketRM(SOCKADDR_IN& hostAddr, char const* hostIP, char const* hostPort);
     void createSocketRF(SOCKADDR_IN& hostAddr, char const* hostIP, char const* hostPort);
+    void createSocketSF(SOCKADDR_IN& hostAddr, char const* hostIP, char const* hostPort);
 
     void run();
 

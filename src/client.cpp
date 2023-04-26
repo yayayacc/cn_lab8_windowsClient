@@ -47,8 +47,8 @@ void Client::createSocketRF(SOCKADDR_IN& hostAddr, char const* hostIP, char cons
 }
 
 void Client::createSocketSF(SOCKADDR_IN& hostAddr, char const* hostIP, char const* hostPort) {
-    clientSocketRF = socket(PF_INET, SOCK_STREAM, 0);
-    if (clientSocketRF == INVALID_SOCKET) {
+    clientSocketSF = socket(PF_INET, SOCK_STREAM, 0);
+    if (clientSocketSF == INVALID_SOCKET) {
         std::cout << "creat socket failed!" << std::endl;
         exit(1);
     }

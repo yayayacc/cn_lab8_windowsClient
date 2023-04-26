@@ -31,7 +31,7 @@ void GUI::init() {
     client.createSocketRM(servADDR_2, hostIP, hostPort);
     connect(client.clientSocketRM, (SOCKADDR*)&servADDR_2, sizeof(servADDR_2));
 
-    client.createSocketSM(servADDR_3, hostIP, hostPort);
+    client.createSocketSF(servADDR_3, hostIP, hostPort);
     connect(client.clientSocketSF, (SOCKADDR*)&servADDR_3, sizeof(servADDR_3));
 
     std::cout << "connect successfully!" << std::endl;
