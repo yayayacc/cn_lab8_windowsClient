@@ -4,9 +4,11 @@
 #include <dxgi1_4.h>
 #include <filesystem>
 #include <iostream>
+#include <memory>
 #include <tchar.h>
 #include <thread>
 
+#include "CTP/ThreadPool.hpp"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_dx12.h"
 #include "imgui/imgui_impl_win32.h"
@@ -51,8 +53,9 @@ class GUI {
     };
 
 public:
-    AppDataPack app_data;
-    Client      client;
+    AppDataPack                       app_data;
+    Client                            client;
+    std::unique_ptr<Chen::ThreadPool> threadPool;
 
     bool is_quit{false};
 

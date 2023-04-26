@@ -3,6 +3,8 @@
 // #include <WinSock2.h>
 
 void GUI::init() {
+    threadPool = std::make_unique<Chen::ThreadPool>(4);
+
     WSADATA     wsadata;
     SOCKADDR_IN servADDR;
     SOCKADDR_IN servADDR_1;
@@ -19,8 +21,11 @@ void GUI::init() {
 
     // char const* hostPort = "17451";
 
-    const char* hostIP   = "192.168.1.100";
-    const char* hostPort = "6666";
+    // const char* hostIP   = "192.168.1.100";
+    // const char* hostPort = "6666";
+
+    const char* hostIP   = "81.70.43.103";
+    const char* hostPort = "8080";
 
     client.createSocket(servADDR, hostIP, hostPort);
     connect(client.clientSocket, (SOCKADDR*)&servADDR, sizeof(servADDR));
