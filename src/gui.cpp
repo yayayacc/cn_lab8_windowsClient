@@ -13,13 +13,13 @@ void GUI::init() {
         exit(1);
     }
 
-    // struct hostent* myhost = gethostbyname("70s43w1165.imdo.co");
-    // char const*     hostIP = inet_ntoa(*(struct in_addr*)myhost->h_addr_list[0]);
+    struct hostent* myhost = gethostbyname("70s43w1165.imdo.co");
+    char const*     hostIP = inet_ntoa(*(struct in_addr*)myhost->h_addr_list[0]);
 
-    // char const* hostPort = "17451";
+    char const* hostPort = "17451";
 
-    const char* hostIP   = "192.168.1.103";
-    const char* hostPort = "6666";
+    // const char* hostIP   = "192.168.1.100";
+    // const char* hostPort = "6666";
 
     client.createSocket(servADDR, hostIP, hostPort);
     connect(client.clientSocket, (SOCKADDR*)&servADDR, sizeof(servADDR));

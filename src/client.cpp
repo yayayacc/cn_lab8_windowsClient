@@ -276,9 +276,10 @@ MsgInfo Client::readMsg() {
     memset(buffer_RM, 0, MAX_BUFFER);
     recv(clientSocketRM, buffer_RM, MAX_BUFFER, 0);
     Parser parser;
-
+    // std::cout << "1234567777" << std::endl;
     parser.parsePkgHead(buffer_RM);
     parser.parseMsg(buffer_RM);
+    std::cout << "the  new  msg is :   " << parser.msg << std::endl;
 
     return MsgInfo{parser.info.account, parser.info.target, parser.msg};
 }
@@ -348,7 +349,7 @@ void Client::recvFile() {
     parser.parseMsg(buffer_RF);
 
     auto save_path =
-        std::filesystem::path(XSTR(ROOT_DIR)) / "file/recv_file.txt";
+        std::filesystem::path(XSTR(ROOT_DIR)) / "file/recv_file.pdf";
 
     std::string filename = save_path.string();
 
