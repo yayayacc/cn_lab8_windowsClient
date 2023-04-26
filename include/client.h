@@ -34,6 +34,7 @@ public:
     int logIn(std::string account, std::string pwd);
     int logInRF(std::string account, std::string pwd);
     int logInRM(std::string account, std::string pwd);
+    int logInSF(std::string account, std::string pwd);
 
     // 输入为目标账户名 和 消息内容
     void Msg2User(std::string target, std::string msg);
@@ -50,10 +51,12 @@ public:
     SOCKET clientSocket;
     SOCKET clientSocketRF;
     SOCKET clientSocketRM;
+    SOCKET clientSocketSF;
 
     char buffer[MAX_BUFFER];
     char buffer_RM[MAX_BUFFER];
     char buffer_RF[MAX_BUFFER + 1];
+    char buffer_SF[MAX_BUFFER];
 
     std::string                myName;
     std::string                myPwd;

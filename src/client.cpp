@@ -169,14 +169,17 @@ int Client::logIn(std::string account, std::string pwd) {
 
         if (account == "cc12345678") {
             logInRF("cc123456RF", "123456");
+            logInSF("cc123456SF", "123456");
             logInRM("cc123456RM", "123456");
         }
         else if (account == "core123456") {
             logInRF("core1234RF", "123456");
+            logInSF("core1234SF", "123456");
             logInRM("core1234RM", "123456");
         }
         else if (account == "godlike123") {
             logInRF("godlike_RF", "123456");
+            logInSF("godlike_SF", "123456");
             logInRM("godlike_RM", "123456");
         }
 
@@ -203,6 +206,41 @@ int Client::logInRF(std::string account, std::string pwd) {
     send(clientSocketRF, pkg.start, pkg.size, 0);
     std::cout << "send successfully!" << std::endl;
     recv(clientSocketRF, buffer, MAX_BUFFER, 0);
+
+    Parser parser;
+    parser.parsePkgHead(buffer);
+    std::cout << int(parser.info.opcode) << std::endl;
+    parser.parseMsg(buffer);
+    memset(buffer, 0, MAX_BUFFER);
+
+    char type = char(*parser.msg.c_str());
+
+    std::cout << "-----" << parser.msg << std::endl;
+    if (type == 'a') {
+        std::cout << "log in successfully!" << std::endl;
+        return 1;
+    }
+    else if (type == 'b') {
+        std::cout << "your pwd is wrong!" << std::endl;
+        return 2;
+    }
+    else if (type == 'c') {
+        std::cout << "this account does not exist!" << std::endl;
+        return 3;
+    }
+
+    return 0;
+}
+
+int Client::logInSF(std::string account, std::string pwd) {
+    auto pkg =
+        PackageFactory::getInstance().createLoginPackage(account.c_str(), pwd);
+
+    // std::cout << "xxx" << std::endl;
+
+    send(clientSocketSF, pkg.start, pkg.size, 0);
+    std::cout << "send successfully!" << std::endl;
+    recv(clientSocketSF, buffer, MAX_BUFFER, 0);
 
     Parser parser;
     parser.parsePkgHead(buffer);

@@ -7,6 +7,7 @@ void GUI::init() {
     SOCKADDR_IN servADDR;
     SOCKADDR_IN servADDR_1;
     SOCKADDR_IN servADDR_2;
+    SOCKADDR_IN servADDR_3;
 
     if (WSAStartup(MAKEWORD(2, 2), &wsadata) != 0) {
         std::cout << "wsa start up failed!" << std::endl;
@@ -29,6 +30,9 @@ void GUI::init() {
 
     client.createSocketRM(servADDR_2, hostIP, hostPort);
     connect(client.clientSocketRM, (SOCKADDR*)&servADDR_2, sizeof(servADDR_2));
+
+    client.createSocketRM(servADDR_3, hostIP, hostPort);
+    connect(client.clientSocketSF, (SOCKADDR*)&servADDR_3, sizeof(servADDR_3));
 
     std::cout << "connect successfully!" << std::endl;
 }
