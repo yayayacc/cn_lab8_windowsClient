@@ -348,6 +348,9 @@ void Client::transferFile(std::string target, std::string filename) {
     FILE* fp = fopen(filename.c_str(), "rb");
     std::cout << "file open successfully!" << std::endl;
 
+    auto        file_path    = std::filesystem::path(filename);
+    std::string realFileName = file_path.stem().string();
+
     fseek(fp, 0, SEEK_SET);
     int NoPkg = 0;
     // 开始传文件
@@ -369,7 +372,7 @@ void Client::transferFile(std::string target, std::string filename) {
         memset(buffer, 0, MAX_BUFFER);
 
         auto pkg =
-            PackageFactory::getInstance().createPackage4(myName, target, msgIndex, filename, tem);
+            PackageFactory::getInstance().createPackage4(myName, target, msgIndex, realFileName, tem);
 
         Parser parser;
         parser.parsePkgHead(pkg.start);
@@ -401,7 +404,7 @@ void Client::recvFile() {
     parser.parseMsg(buffer_RF);
 
     auto save_path =
-        std::filesystem::path(XSTR(ROOT_DIR)) / "file/recv_file.pdf";
+        std::filesystem::path(XSTR(ROOT_DIR)) / "file" / parser.info.filename;
 
     std::string filename = save_path.string();
 
