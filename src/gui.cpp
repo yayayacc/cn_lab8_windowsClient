@@ -14,13 +14,13 @@ void GUI::init() {
         exit(1);
     }
 
-    struct hostent* myhost = gethostbyname("70s43w1165.imdo.co");
-    char const*     hostIP = inet_ntoa(*(struct in_addr*)myhost->h_addr_list[0]);
+    // struct hostent* myhost = gethostbyname("70s43w1165.imdo.co");
+    // char const*     hostIP = inet_ntoa(*(struct in_addr*)myhost->h_addr_list[0]);
 
-    char const* hostPort = "17451";
+    // char const* hostPort = "17451";
 
-    // const char* hostIP   = "192.168.1.100";
-    // const char* hostPort = "6666";
+    const char* hostIP   = "192.168.1.100";
+    const char* hostPort = "6666";
 
     client.createSocket(servADDR, hostIP, hostPort);
     connect(client.clientSocket, (SOCKADDR*)&servADDR, sizeof(servADDR));
@@ -31,7 +31,7 @@ void GUI::init() {
     client.createSocketRM(servADDR_2, hostIP, hostPort);
     connect(client.clientSocketRM, (SOCKADDR*)&servADDR_2, sizeof(servADDR_2));
 
-    client.createSocketRM(servADDR_3, hostIP, hostPort);
+    client.createSocketSM(servADDR_3, hostIP, hostPort);
     connect(client.clientSocketSF, (SOCKADDR*)&servADDR_3, sizeof(servADDR_3));
 
     std::cout << "connect successfully!" << std::endl;
@@ -41,5 +41,7 @@ void GUI::shutdown() {
     closesocket(client.clientSocket);
     closesocket(client.clientSocketRF);
     closesocket(client.clientSocketRM);
+    closesocket(client.clientSocketSF);
+
     WSACleanup();
 }

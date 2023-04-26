@@ -46,6 +46,20 @@ void Client::createSocketRF(SOCKADDR_IN& hostAddr, char const* hostIP, char cons
     hostAddr.sin_port        = htons(atoi(hostPort));
 }
 
+void Client::createSocketSF(SOCKADDR_IN& hostAddr, char const* hostIP, char const* hostPort) {
+    clientSocketRF = socket(PF_INET, SOCK_STREAM, 0);
+    if (clientSocketRF == INVALID_SOCKET) {
+        std::cout << "creat socket failed!" << std::endl;
+        exit(1);
+    }
+
+    memset(&hostAddr, 0, sizeof(hostAddr));
+    hostAddr.sin_family = AF_INET;
+    // hostAddr.sin_addr.s_addr = inet_addr(hostIP);
+    hostAddr.sin_addr.s_addr = inet_addr(hostIP);
+    hostAddr.sin_port        = htons(atoi(hostPort));
+}
+
 void Client::run() {
     if (logIn("cc12345678", "123456") != 1) {
         closesocket(clientSocket);
